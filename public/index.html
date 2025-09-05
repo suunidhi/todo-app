@@ -20,19 +20,15 @@
       padding: 10px;
       margin: 5px;
     }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .task {
       background: white;
       padding: 10px;
       margin: 5px 0;
       border-radius: 5px;
       box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   </style>
 </head>
@@ -51,8 +47,7 @@
     const taskInput = document.getElementById("taskInput");
     const taskList = document.getElementById("taskList");
 
-    // Change this to your deployed backend URL (Render/localhost)
-    const API_URL = "https://todo-app-jwlm.onrender.com/tasks";
+    const API_URL = "https://todo-app-jwlm.onrender.com/tasks"; // <-- note /tasks
 
     // Fetch and display tasks
     async function loadTasks() {
@@ -62,13 +57,14 @@
       taskList.innerHTML = "";
       tasks.forEach((task) => {
         const li = document.createElement("li");
+        li.className = "task";
         li.innerHTML = `
-          <span style="text-decoration: ${task.completed ? "line-through" : "none"}">
+          <span style="text-decoration: ${task.status === "Completed" ? "line-through" : "none"}">
             ${task.title}
           </span>
           <div>
-            <button onclick="toggleTask('${task._id}')">
-              ${task.completed ? "Undo" : "Complete"}
+            <button onclick="toggleTask('${task._id}', '${task.status}')">
+              ${task.status === "Completed" ? "Undo" : "Complete"}
             </button>
             <button onclick="deleteTask('${task._id}')">❌</button>
           </div>
@@ -80,7 +76,7 @@
     // Add a task
     taskForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const newTask = { title: taskInput.value };
+      const newTask = { title: taskInput.value, status: "Not Started" };
 
       await fetch(API_URL, {
         method: "POST",
@@ -93,8 +89,13 @@
     });
 
     // Toggle complete
-    async function toggleTask(id) {
-      await fetch(`${API_URL}/${id}/toggle`, { method: "PATCH" });
+    async function toggleTask(id, currentStatus) {
+      const newStatus = currentStatus === "Completed" ? "Not Started" : "Completed";
+      await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
       loadTasks();
     }
 
