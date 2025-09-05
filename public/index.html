@@ -20,7 +20,14 @@
       padding: 10px;
       margin: 5px;
     }
-    .task {
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: white;
       padding: 10px;
       margin: 5px 0;
@@ -39,66 +46,66 @@
 
   <ul id="taskList"></ul>
 
-  <script>const taskForm = document.getElementById("taskForm");
-const taskInput = document.getElementById("taskInput");
-const taskList = document.getElementById("taskList");
+  <script>
+    const taskForm = document.getElementById("taskForm");
+    const taskInput = document.getElementById("taskInput");
+    const taskList = document.getElementById("taskList");
 
-const API_URL = "http://localhost:5000/api/tasks";
+    // Change this to your deployed backend URL (Render/localhost)
+    const API_URL = "https://todo-app-jwlm.onrender.com/tasks";
 
-// Fetch and display tasks
-async function loadTasks() {
-  const res = await fetch(API_URL);
-  const tasks = await res.json();
+    // Fetch and display tasks
+    async function loadTasks() {
+      const res = await fetch(API_URL);
+      const tasks = await res.json();
 
-  taskList.innerHTML = "";
-  tasks.forEach((task) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <span style="text-decoration: ${task.completed ? "line-through" : "none"}">
-        ${task.title}
-      </span>
-      <div>
-        <button onclick="toggleTask('${task._id}')">
-          ${task.completed ? "Undo" : "Complete"}
-        </button>
-        <button onclick="deleteTask('${task._id}')">❌</button>
-      </div>
-    `;
-    taskList.appendChild(li);
-  });
-}
+      taskList.innerHTML = "";
+      tasks.forEach((task) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span style="text-decoration: ${task.completed ? "line-through" : "none"}">
+            ${task.title}
+          </span>
+          <div>
+            <button onclick="toggleTask('${task._id}')">
+              ${task.completed ? "Undo" : "Complete"}
+            </button>
+            <button onclick="deleteTask('${task._id}')">❌</button>
+          </div>
+        `;
+        taskList.appendChild(li);
+      });
+    }
 
-// Add a task
-taskForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+    // Add a task
+    taskForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newTask = { title: taskInput.value };
 
-  const newTask = { title: taskInput.value };
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTask),
+      });
 
-  await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newTask),
-  });
+      taskInput.value = "";
+      loadTasks();
+    });
 
-  taskInput.value = "";
-  loadTasks();
-});
+    // Toggle complete
+    async function toggleTask(id) {
+      await fetch(`${API_URL}/${id}/toggle`, { method: "PATCH" });
+      loadTasks();
+    }
 
-// Toggle complete
-async function toggleTask(id) {
-  await fetch(`${API_URL}/${id}/toggle`, { method: "PATCH" });
-  loadTasks();
-}
+    // Delete a task
+    async function deleteTask(id) {
+      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      loadTasks();
+    }
 
-// Delete a task
-async function deleteTask(id) {
-  await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  loadTasks();
-}
-
-// Load tasks on page load
-loadTasks();
-
+    // Load tasks on page load
+    loadTasks();
   </script>
 </body>
-<!-- No additional code needed here. Your HTML file is complete and functional. -->
+</html>
